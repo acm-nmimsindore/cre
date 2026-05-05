@@ -4,10 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Certificates | ACM COMPUTE Regional Event</title>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Cormorant+Garamond:wght@600;700&family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     :root {
@@ -19,77 +18,238 @@
       --bg: #FFFFFF;
       --bg-subtle: #F7F7F7;
       --border: #E5E5E5;
+      --shadow: 0 28px 80px rgba(45, 45, 45, 0.08);
     }
 
     * {
+      box-sizing: border-box;
       font-family: "Outfit", system-ui, -apple-system, sans-serif;
     }
 
+    html {
+      scroll-behavior: smooth;
+    }
+
     body {
+      margin: 0;
       color: var(--text);
-      background: var(--bg);
-      font-weight: 400;
+      background:
+        radial-gradient(circle at top left, rgba(196, 92, 62, 0.08), transparent 30%),
+        radial-gradient(circle at bottom right, rgba(196, 92, 62, 0.05), transparent 28%),
+        linear-gradient(180deg, #ffffff 0%, #fbf8f6 100%);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background:
+        repeating-linear-gradient(-45deg, transparent, transparent 44px, rgba(196, 92, 62, 0.018) 44px, rgba(196, 92, 62, 0.018) 45px);
+      z-index: 0;
     }
 
     h1, h2, h3, h4, h5, h6 {
-      font-weight: 600;
-      line-height: 1.3;
       color: var(--text);
+      font-weight: 700;
+      line-height: 1.25;
+      margin-top: 0;
     }
 
-    .certificate-hero {
-      background: linear-gradient(135deg, rgba(196, 92, 62, 0.05) 0%, rgba(196, 92, 62, 0.02) 100%);
-      padding: 4rem 0;
+    .page-shell {
+      position: relative;
+      z-index: 1;
+    }
+
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(10px);
       border-bottom: 1px solid var(--border);
     }
 
-    .certificate-hero h1 {
-      font-size: clamp(2rem, 5vw, 3.5rem);
-      margin-bottom: 1rem;
-    }
-
-    .certificate-hero p {
-      font-size: 1.1rem;
-      color: var(--text-muted);
-      margin-bottom: 0;
-    }
-
-    .certificate-portal {
-      min-height: 100vh;
+    .site-header-inner {
       display: flex;
       align-items: center;
-      padding: 4rem 0;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 1rem 0;
     }
 
-    .portal-card {
-      background: var(--bg);
+    .site-brand {
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      font-size: 0.98rem;
+    }
+
+    .site-nav a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.875rem;
+      margin-left: 1.5rem;
+      font-weight: 500;
+    }
+
+    .hero {
+      padding: 3.5rem 0 1.75rem;
+    }
+
+    .hero-card {
       border: 1px solid var(--border);
-      padding: 2rem;
-      max-width: 500px;
-      width: 100%;
-      margin: 0 auto;
+      background: #fff;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .hero-inner {
+      padding: 2.25rem;
+      background: linear-gradient(135deg, rgba(196, 92, 62, 0.06) 0%, rgba(196, 92, 62, 0.015) 100%);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.42rem 0.75rem;
+      margin-bottom: 1rem;
+      background: rgba(196, 92, 62, 0.1);
+      color: var(--accent);
+      border: 1px solid rgba(196, 92, 62, 0.18);
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .hero-title {
+      font-size: clamp(2rem, 4vw, 3.6rem);
+      margin: 0 0 0.85rem;
+      max-width: 14ch;
+    }
+
+    .hero-copy {
+      max-width: 64ch;
+      margin-bottom: 0;
+      color: var(--text-muted);
+      line-height: 1.75;
+      font-size: 1rem;
+    }
+
+    .badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-top: 1.5rem;
+    }
+
+    .badge-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.65rem 0.85rem;
+      border: 1px solid var(--border);
+      background: var(--bg-subtle);
+      color: var(--text);
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .portal-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
+      gap: 1.5rem;
+      padding: 2rem 2.25rem 2.25rem;
+    }
+
+    .panel {
+      border: 1px solid var(--border);
+      background: #fff;
+    }
+
+    .form-panel {
+      padding: 1.75rem;
+    }
+
+    .summary-panel {
+      padding: 1.75rem;
+      background: linear-gradient(180deg, #fff 0%, #f8f4f1 100%);
+    }
+
+    .summary-title {
+      margin: 0 0 0.9rem;
+      color: var(--text-subtle);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      font-weight: 700;
+    }
+
+    .summary-empty {
+      color: var(--text-muted);
+      font-size: 0.96rem;
+      line-height: 1.7;
+      margin: 0;
+    }
+
+    .summary-list {
+      display: grid;
+      gap: 0.85rem;
+    }
+
+    .summary-item {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      padding-bottom: 0.85rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .summary-item:last-child {
+      padding-bottom: 0;
+      border-bottom: 0;
+    }
+
+    .summary-item span {
+      color: var(--text-subtle);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 700;
+    }
+
+    .summary-item strong {
+      color: var(--text);
+      font-size: 0.98rem;
+      word-break: break-word;
     }
 
     .form-label {
-      font-weight: 600;
+      font-weight: 700;
       color: var(--text);
       margin-bottom: 0.5rem;
-      font-size: 0.875rem;
+      font-size: 0.82rem;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.07em;
     }
 
     .form-control {
       border: 1px solid var(--border);
       border-radius: 0;
-      padding: 0.75rem 1rem;
+      padding: 0.85rem 1rem;
       font-size: 1rem;
-      transition: border-color 0.2s, background-color 0.2s;
+      transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
     }
 
     .form-control:focus {
       border-color: var(--accent);
-      box-shadow: inset 0 0 0 0.2rem rgba(196, 92, 62, 0.1);
+      box-shadow: inset 0 0 0 0.2rem rgba(196, 92, 62, 0.08);
       outline: none;
     }
 
@@ -101,84 +261,110 @@
     }
 
     .status-message {
-      padding: 0.75rem 1rem;
-      margin-bottom: 1rem;
-      border-radius: 0;
       display: none;
-      font-size: 0.875rem;
-      font-weight: 500;
-      letter-spacing: 0.05em;
+      margin-bottom: 1rem;
+      padding: 0.9rem 1rem;
+      border-radius: 0;
+      font-size: 0.82rem;
+      font-weight: 700;
       text-transform: uppercase;
+      letter-spacing: 0.08em;
     }
 
     .status-message.ok {
       display: block;
-      background: #E8F5E9;
       color: #2E7D32;
+      background: #EAF6EC;
       border-left: 4px solid #2E7D32;
     }
 
     .status-message.error {
       display: block;
-      background: #FFEBEE;
       color: #C62828;
+      background: #FFEBEE;
       border-left: 4px solid #C62828;
     }
 
     .btn {
-      font-weight: 500;
       border-radius: 0;
-      padding: 0.75rem 1.5rem;
-      font-size: 0.875rem;
+      font-size: 0.82rem;
+      font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
-      transition: all 0.2s;
+      letter-spacing: 0.08em;
+      padding: 0.9rem 1.15rem;
+      transition: transform 0.2s, background-color 0.2s, border-color 0.2s, color 0.2s;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
     }
 
     .btn-primary {
-      background-color: var(--accent);
+      background: var(--accent);
       border-color: var(--accent);
-      color: white;
+      color: #fff;
     }
 
-    .btn-primary:hover {
-      background-color: var(--accent-hover);
+    .btn-primary:hover,
+    .btn-primary:focus {
+      background: var(--accent-hover);
       border-color: var(--accent-hover);
-      color: white;
+      color: #fff;
     }
 
     .btn-primary:disabled {
-      background-color: var(--text-subtle);
+      background: var(--text-subtle);
       border-color: var(--text-subtle);
-      opacity: 0.6;
+      opacity: 0.7;
+      transform: none;
       cursor: not-allowed;
     }
 
     .btn-secondary {
-      background-color: var(--bg-subtle);
+      background: var(--bg-subtle);
       border-color: var(--border);
       color: var(--text);
     }
 
-    .btn-secondary:hover {
-      background-color: var(--border);
+    .btn-secondary:hover,
+    .btn-secondary:focus {
+      background: #ece8e5;
       border-color: var(--text-subtle);
       color: var(--text);
     }
 
-    .certificate-preview {
-      background: var(--bg-subtle);
-      padding: 3rem 0;
-      margin: 3rem 0;
+    .lookup-note {
+      margin: 1rem 0 0;
+      color: var(--text-subtle);
+      font-size: 0.92rem;
+      line-height: 1.6;
     }
 
-    .cert-canvas-wrapper {
-      background: white;
+    .preview-section {
+      padding: 0 0 4rem;
+    }
+
+    .preview-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 1.25rem;
+      flex-wrap: wrap;
+      margin: 0 0 1rem;
+    }
+
+    .preview-copy {
+      color: var(--text-muted);
+      max-width: 68ch;
+      margin-bottom: 0;
+      line-height: 1.65;
+    }
+
+    .canvas-wrap {
       border: 1px solid var(--border);
-      display: inline-block;
-      width: 100%;
-      max-width: 900px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      background: #fff;
+      box-shadow: var(--shadow);
+      overflow: hidden;
     }
 
     #certCanvas {
@@ -187,487 +373,550 @@
       display: block;
     }
 
-    .button-group {
+    .preview-actions {
       display: flex;
-      gap: 1rem;
-      margin-top: 2rem;
       flex-wrap: wrap;
+      gap: 0.75rem;
     }
 
-    .button-group .btn {
-      flex: 1;
-      min-width: 200px;
+    .preview-actions .btn {
+      min-width: 180px;
+    }
+
+    .site-footer {
+      border-top: 1px solid var(--border);
+      background: #fff;
+      padding: 1.75rem 0;
+      margin-top: 1rem;
+    }
+
+    .footer-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+      color: var(--text-muted);
+      font-size: 0.875rem;
+    }
+
+    .footer-inner a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
     }
 
     .hidden {
-      display: none;
+      display: none !important;
+    }
+
+    @media (max-width: 991px) {
+      .portal-grid {
+        grid-template-columns: 1fr;
+      }
     }
 
     @media (max-width: 576px) {
-      .portal-card {
-        padding: 1.5rem;
+      .hero-inner,
+      .portal-grid,
+      .form-panel,
+      .summary-panel {
+        padding: 1.25rem;
       }
 
-      .button-group {
-        flex-direction: column;
-      }
-
-      .button-group .btn {
+      .preview-actions .btn {
         width: 100%;
+      }
+
+      .hero-title {
+        max-width: none;
       }
     }
   </style>
 </head>
 <body>
-  <!-- HEADER -->
-  <header class="site-header" style="background: white; border-bottom: 1px solid var(--border); padding: 1rem 0;">
-    <div class="container">
-      <div style="display: flex; justify-content: space-between; align-items: center;">
-        <a href="/docs/" style="font-weight: 600; color: var(--text); text-decoration: none;">ACM COMPUTE</a>
-        <nav>
-          <a href="/docs/" style="color: var(--text-muted); text-decoration: none; margin-left: 2rem; font-size: 0.875rem;">Home</a>
-        </nav>
-      </div>
-    </div>
-  </header>
-
-  <!-- LANDING PAGE -->
-  <section class="hidden" id="pg-land" style="min-height: 100vh; display: flex; align-items: center;">
-    <div class="container">
-      <div class="row">
-        <div class="col-lg-8 mx-auto text-center">
-          <h1 style="font-size: clamp(2.5rem, 8vw, 4rem); margin-bottom: 1.5rem; color: var(--accent);">📜</h1>
-          <h1 style="margin-bottom: 1rem;">Certificate Portal</h1>
-          <p class="lead" style="color: var(--text-muted); margin-bottom: 2rem; font-size: 1.2rem;">
-            Download your participation certificate from the ACM COMPUTE Regional Event 2026
-          </p>
-          <button class="btn btn-primary btn-lg" onclick="go('pg-land', 'pg-tracks')">
-            Access Portal
-          </button>
+  <div class="page-shell">
+    <header class="site-header">
+      <div class="container">
+        <div class="site-header-inner">
+          <a class="site-brand" href="/docs/">ACM COMPUTE</a>
+          <nav class="site-nav" aria-label="Primary">
+            <a href="/docs/">Home</a>
+          </nav>
         </div>
       </div>
-    </div>
-  </section>
+    </header>
 
-  <!-- ATTENDEE REGISTRY PAGE -->
-  <section id="pg-tracks" class="certificate-portal">
-    <div class="container">
-      <div class="row">
-        <div class="col-lg-6 mx-auto">
-          <div style="margin-bottom: 2rem;">
-            <h1 style="margin-bottom: 0.5rem;">Download Certificate</h1>
-            <p style="color: var(--text-muted); margin-bottom: 0;">Enter your email address to verify and generate your certificate</p>
-          </div>
-
-          <div class="portal-card">
-            <div id="status-t1" class="status-message"></div>
-
-            <div class="mb-3">
-              <label for="inp-email" class="form-label">Email Address</label>
-              <input 
-                type="email" 
-                class="form-control" 
-                id="inp-email" 
-                placeholder="Enter your email address" 
-                oninput="lookupAttendee()" 
-                autocomplete="off">
+    <main>
+      <section class="hero">
+        <div class="container">
+          <div class="hero-card">
+            <div class="hero-inner">
+              <div class="kicker">ACM COMPUTE Regional Event 2026</div>
+              <h1 class="hero-title">Verify by email. Generate a polished certificate in one step.</h1>
+              <p class="hero-copy">Enter the attendee email address from the registration list. The portal will match the record, fill the name and organization automatically, and render the final PDF certificate with the official event artwork and signature layout.</p>
+              <div class="badge-row">
+                <span class="badge-chip">Email lookup</span>
+                <span class="badge-chip">Auto-filled attendee details</span>
+                <span class="badge-chip">Canvas-based PDF</span>
+                <span class="badge-chip">Reference artwork from certificate-main</span>
+              </div>
             </div>
 
-            <div class="mb-3">
-              <label for="inp-name" class="form-label">Full Name</label>
-              <input 
-                type="text" 
-                class="form-control" 
-                id="inp-name" 
-                readonly>
+            <div class="portal-grid">
+              <section class="panel form-panel" aria-labelledby="lookup-title">
+                <h2 id="lookup-title" class="h4 mb-3">Download Certificate</h2>
+                <div id="status-t1" class="status-message"></div>
+
+                <div class="mb-3">
+                  <label for="inp-email" class="form-label">Email Address</label>
+                  <input id="inp-email" class="form-control" type="email" placeholder="Enter your email address" autocomplete="off" oninput="lookupAttendee()">
+                </div>
+
+                <div class="mb-3">
+                  <label for="inp-name" class="form-label">Full Name</label>
+                  <input id="inp-name" class="form-control" type="text" readonly>
+                </div>
+
+                <div class="mb-3">
+                  <label for="inp-org" class="form-label">Organization</label>
+                  <input id="inp-org" class="form-control" type="text" readonly>
+                </div>
+
+                <button id="gen-btn" class="btn btn-primary w-100" disabled onclick="generateCert()">Generate PDF Certificate</button>
+                <p class="lookup-note">If a record is not found, check that the email matches the spreadsheet exactly, including any punctuation and domain spelling.</p>
+              </section>
+
+              <aside class="panel summary-panel" aria-labelledby="summary-title">
+                <h2 id="summary-title" class="summary-title">Verified attendee</h2>
+                <p id="summary-empty" class="summary-empty">Enter a registered attendee email to see the matched record here.</p>
+                <div id="summary-list" class="summary-list hidden">
+                  <div class="summary-item">
+                    <span>Email</span>
+                    <strong id="summary-email"></strong>
+                  </div>
+                  <div class="summary-item">
+                    <span>Name</span>
+                    <strong id="summary-name"></strong>
+                  </div>
+                  <div class="summary-item">
+                    <span>Organization</span>
+                    <strong id="summary-org"></strong>
+                  </div>
+                  <div class="summary-item">
+                    <span>Status</span>
+                    <strong>Ready to generate</strong>
+                  </div>
+                </div>
+              </aside>
             </div>
-
-            <div class="mb-3">
-              <label for="inp-org" class="form-label">Organization</label>
-              <input 
-                type="text" 
-                class="form-control" 
-                id="inp-org" 
-                readonly>
-            </div>
-
-            <button 
-              class="btn btn-primary w-100" 
-              id="gen-btn" 
-              disabled 
-              onclick="generateCert()">
-              Generate Certificate
-            </button>
-          </div>
-
-          <div style="margin-top: 2rem; text-align: center;">
-            <button class="btn btn-secondary" onclick="go('pg-tracks', 'pg-land')">
-              Back
-            </button>
           </div>
         </div>
-      </div>
-    </div>
-  </section>
+      </section>
 
-  <!-- CERTIFICATE VIEW PAGE -->
-  <section id="pg-cert" class="hidden" style="padding: 2rem 0;">
-    <div class="container">
-      <div class="row mb-3">
-        <div class="col-12">
-          <button class="btn btn-secondary" onclick="go('pg-cert', 'pg-tracks')">
-            ← Back
-          </button>
-        </div>
-      </div>
+      <section id="pg-cert" class="preview-section hidden">
+        <div class="container">
+          <div class="preview-head">
+            <div>
+              <div class="kicker" style="margin-bottom: .85rem;">Certificate preview</div>
+              <h2 style="margin-bottom: .35rem;">Review and download</h2>
+              <p class="preview-copy">The preview below uses the reference logos and signature artwork from <span style="color: var(--accent); font-weight: 600;">certificate-main</span>, but keeps the overall page aligned with the ACM CRE website design.</p>
+            </div>
+            <div class="preview-actions">
+              <button class="btn btn-secondary" onclick="goToLookup()">Back to lookup</button>
+              <button class="btn btn-primary" onclick="downloadPDF()">Download PDF</button>
+            </div>
+          </div>
 
-      <div class="row">
-        <div class="col-lg-10 mx-auto">
-          <div class="cert-canvas-wrapper">
+          <div class="canvas-wrap">
             <canvas id="certCanvas" width="2400" height="1697"></canvas>
           </div>
         </div>
-      </div>
+      </section>
+    </main>
 
-      <div class="row mt-4">
-        <div class="col-lg-10 mx-auto">
-          <div class="button-group">
-            <button class="btn btn-primary" onclick="downloadPDF()">
-              Download Certificate
-            </button>
-            <button class="btn btn-secondary" onclick="go('pg-cert', 'pg-land')">
-              Home
-            </button>
-          </div>
+    <footer class="site-footer">
+      <div class="container">
+        <div class="footer-inner">
+          <div>ACM COMPUTE Regional Event 2026 - Indore, India</div>
+          <div><a href="/docs/">Back to Website</a></div>
         </div>
       </div>
-    </div>
-  </section>
+    </footer>
+  </div>
 
-  <!-- FOOTER -->
-  <footer style="background: var(--bg-subtle); border-top: 1px solid var(--border); margin-top: 4rem; padding: 2rem 0;">
-    <div class="container">
-      <div style="text-align: center; color: var(--text-muted); font-size: 0.875rem;">
-        <p style="margin-bottom: 0.5rem;">ACM COMPUTE Regional Event 2026 · Indore, India</p>
-        <p style="margin-bottom: 0;"><a href="/docs/" style="color: var(--accent); text-decoration: none;">Back to Website</a></p>
-      </div>
-    </div>
-  </footer>
-
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     let attendeesList = [];
     let currentRecord = null;
 
-    function go(from, to) {
-      document.getElementById(from)?.classList.add('hidden');
-      document.getElementById(to)?.classList.remove('hidden');
-      window.scrollTo(0, 0);
+    function normalize(value) {
+      return String(value || '').replace(/\s+/g, '').toLowerCase();
+    }
+
+    function cleanText(value) {
+      return String(value ?? '').replace(/\s+/g, ' ').trim();
+    }
+
+    function setStatus(kind, message) {
+      const status = document.getElementById('status-t1');
+      if (!status) return;
+      if (!kind) {
+        status.className = 'status-message';
+        status.textContent = '';
+        return;
+      }
+      status.className = `status-message ${kind}`;
+      status.textContent = message;
+    }
+
+    function renderSummary(record) {
+      const empty = document.getElementById('summary-empty');
+      const list = document.getElementById('summary-list');
+      const email = document.getElementById('summary-email');
+      const name = document.getElementById('summary-name');
+      const org = document.getElementById('summary-org');
+      if (!empty || !list || !email || !name || !org) return;
+
+      if (!record) {
+        empty.classList.remove('hidden');
+        list.classList.add('hidden');
+        email.textContent = '';
+        name.textContent = '';
+        org.textContent = '';
+        return;
+      }
+
+      empty.classList.add('hidden');
+      list.classList.remove('hidden');
+      email.textContent = record.email || '—';
+      name.textContent = record.name || '—';
+      org.textContent = record.org || '—';
     }
 
     async function loadData() {
       try {
-        const r = await fetch('data.xlsx');
-        if (!r.ok) throw new Error('not found');
-        const buf = await r.arrayBuffer();
-        parseAttendees(buf);
-      } catch(e) {
-        console.error('Failed to load data.xlsx', e);
+        const response = await fetch('data.xlsx');
+        if (!response.ok) throw new Error('data.xlsx not found');
+        const buffer = await response.arrayBuffer();
+        parseAttendees(buffer);
+      } catch (error) {
+        console.error('Failed to load data.xlsx', error);
+        setStatus('error', 'Attendee data could not be loaded');
       }
     }
 
-    function cleanText(v) {
-      return String(v ?? '').replace(/\s+/g,' ').trim();
-    }
-
-    function parseAttendees(buf) {
+    function parseAttendees(buffer) {
       attendeesList = [];
-      if (!window.XLSX) {
-        throw new Error('xlsx not loaded');
-      }
+      if (!window.XLSX) throw new Error('XLSX library not available');
 
-      const wb = XLSX.read(buf, { type: 'array' });
-      wb.SheetNames.forEach((sheetName) => {
-        const sheet = wb.Sheets[sheetName];
+      const workbook = XLSX.read(buffer, { type: 'array' });
+      workbook.SheetNames.forEach((sheetName) => {
+        const sheet = workbook.Sheets[sheetName];
         const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
         if (!rows.length) return;
 
-        const headerRowIndex = rows.findIndex((r) => r.some((c) => String(c).trim() !== ''));
+        const headerRowIndex = rows.findIndex((row) => row.some((cell) => String(cell).trim() !== ''));
         if (headerRowIndex === -1) return;
-        
+
         const headerRow = rows[headerRowIndex];
         const headerMap = {};
-        
-        headerRow.forEach((cell, idx) => {
-          const key = String(cell || '').replace(/\s+/g,'').toLowerCase();
-          if (key.includes('name')) headerMap.name = idx;
-          if (key.includes('email')) headerMap.email = idx;
-          if (key.includes('org') || key.includes('affil') || key.includes('institution') || key.includes('company')) headerMap.org = idx;
+        headerRow.forEach((cell, index) => {
+          const key = String(cell || '').replace(/\s+/g, '').toLowerCase();
+          if (key.includes('email')) headerMap.email = index;
+          if (key.includes('name')) headerMap.name = index;
+          if (key.includes('org') || key.includes('instit') || key.includes('affil') || key.includes('company')) headerMap.org = index;
         });
 
         rows.slice(headerRowIndex + 1).forEach((row) => {
-          if (!row || row.every((c) => String(c).trim() === '')) return;
-          
-          const name = headerMap.name !== undefined ? cleanText(row[headerMap.name]) : '';
+          if (!row || row.every((cell) => String(cell).trim() === '')) return;
           const email = headerMap.email !== undefined ? cleanText(row[headerMap.email]) : '';
+          const name = headerMap.name !== undefined ? cleanText(row[headerMap.name]) : '';
           const org = headerMap.org !== undefined ? cleanText(row[headerMap.org]) : '';
-
-          if (!name) return;
-          attendeesList.push({ name, email, org });
+          if (!email && !name) return;
+          attendeesList.push({ email, name, org });
         });
       });
-    }
-
-    function normalize(s) {
-      return String(s || '').replace(/\s+/g,'').toLowerCase();
     }
 
     function lookupAttendee() {
       const raw = document.getElementById('inp-email').value.trim();
-      const key = normalize(raw);
-      
-      const inpName = document.getElementById('inp-name');
-      const inpOrg = document.getElementById('inp-org');
-      const st = document.getElementById('status-t1');
-      const btn = document.getElementById('gen-btn');
+      const inputName = document.getElementById('inp-name');
+      const inputOrg = document.getElementById('inp-org');
+      const button = document.getElementById('gen-btn');
 
       if (!raw) {
-        st.classList.remove('ok', 'error');
-        inpName.value = '';
-        inpOrg.value = '';
-        btn.disabled = true;
+        setStatus('', '');
+        inputName.value = '';
+        inputOrg.value = '';
+        button.disabled = true;
         currentRecord = null;
+        renderSummary(null);
         return;
       }
 
-      const matches = attendeesList.filter((rec) =>
-        normalize(rec.email) === key
-      );
+      const key = normalize(raw);
+      const matches = attendeesList.filter((record) => normalize(record.email) === key);
 
       if (matches.length === 1) {
-        st.className = 'status-message ok';
-        st.textContent = '✓ Verified';
-        const match = matches[0];
-        inpName.value = match.name || '';
-        inpOrg.value = match.org || '';
-        btn.disabled = false;
-        currentRecord = match;
-      } else if (matches.length > 1) {
-        st.className = 'status-message ok';
-        st.textContent = '✓ Found';
-        inpName.value = matches[0].name || '';
-        inpOrg.value = matches[0].org || '';
-        currentRecord = matches[0];
-        btn.disabled = false;
-      } else {
-        st.className = 'status-message error';
-        st.textContent = '✗ Email not found in attendee list';
-        inpName.value = '';
-        inpOrg.value = '';
-        btn.disabled = true;
-        currentRecord = null;
+        const record = matches[0];
+        currentRecord = record;
+        inputName.value = record.name || '';
+        inputOrg.value = record.org || '';
+        button.disabled = false;
+        setStatus('ok', 'Verified');
+        renderSummary(record);
+        return;
       }
+
+      if (matches.length > 1) {
+        const record = matches[0];
+        currentRecord = record;
+        inputName.value = record.name || '';
+        inputOrg.value = record.org || '';
+        button.disabled = false;
+        setStatus('ok', 'Verified');
+        renderSummary(record);
+        return;
+      }
+
+      currentRecord = null;
+      inputName.value = '';
+      inputOrg.value = '';
+      button.disabled = true;
+      setStatus('error', 'Email not found in attendee list');
+      renderSummary(null);
     }
 
-    function generateCert() {
-      if (!currentRecord) return;
-      go('pg-tracks', 'pg-cert');
-      const canvas = document.getElementById('certCanvas');
-      const ctx = canvas.getContext('2d');
-      const W = canvas.width;
-      const H = canvas.height;
-      
-      const assets = { 
-        logo1: 'nmims.png', 
-        logo2: 'acm.png',
-        sign1: 'sig1.png', 
-        sign2: 'sig2.png', 
-        sign3: 'sig3.png' 
-      };
-      
-      const imgs = {};
-      let loaded = 0;
-      const target = Object.keys(assets).length;
-      
-      Object.entries(assets).forEach(([key, src]) => {
-        const img = new Image();
-        img.src = src;
-        img.onload = () => { imgs[key] = img; if(++loaded === target) drawCert(ctx, W, H, currentRecord, imgs); };
-        img.onerror = () => { imgs[key] = null; if(++loaded === target) drawCert(ctx, W, H, currentRecord, imgs); };
+    function goToLookup() {
+      document.getElementById('pg-cert').classList.add('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function getCertificateId(record) {
+      const base = String((record.email || record.name || 'attendee')).replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+      const hashSeed = (record.name || '').length + (record.email || '').length + (record.org || '').length;
+      return `CRE-${base.slice(0, 10)}-${String(hashSeed).padStart(4, '0')}`;
+    }
+
+    function fitImageContain(ctx, img, x, y, width, height) {
+      const scale = Math.min(width / img.width, height / img.height);
+      const drawWidth = img.width * scale;
+      const drawHeight = img.height * scale;
+      const drawX = x + (width - drawWidth) / 2;
+      const drawY = y + (height - drawHeight) / 2;
+      ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
+    }
+
+    function loadImage(src) {
+      return new Promise((resolve) => {
+        const image = new Image();
+        image.onload = () => resolve(image);
+        image.onerror = () => resolve(null);
+        image.src = src;
       });
     }
 
-    function drawCert(ctx, W, H, attendee, imgs) {
-      const accent = '#C45C3E';
-      const text = '#2D2D2D';
-      
-      ctx.fillStyle = '#fff';
-      ctx.fillRect(0, 0, W, H);
+    async function generateCert() {
+      if (!currentRecord) return;
+      const preview = document.getElementById('pg-cert');
+      preview.classList.remove('hidden');
+      preview.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-      // Background pattern
+      const canvas = document.getElementById('certCanvas');
+      const ctx = canvas.getContext('2d');
+      const width = canvas.width;
+      const height = canvas.height;
+
+      const assetPaths = {
+        logo1: '../certificate-main/nmims.png',
+        logo2: '../certificate-main/springer.png',
+        sign1: '../certificate-main/aj.png',
+        sign2: '../certificate-main/ss.png',
+        sign3: '../certificate-main/vk.png'
+      };
+
+      const [logo1, logo2, sign1, sign2, sign3] = await Promise.all([
+        loadImage(assetPaths.logo1),
+        loadImage(assetPaths.logo2),
+        loadImage(assetPaths.sign1),
+        loadImage(assetPaths.sign2),
+        loadImage(assetPaths.sign3)
+      ]);
+
+      renderCertificate(ctx, width, height, currentRecord, { logo1, logo2, sign1, sign2, sign3 });
+    }
+
+    function renderCertificate(ctx, width, height, record, assets) {
+      const accent = '#C45C3E';
+      const soft = '#6B6B6B';
+      const text = '#2D2D2D';
+      const organization = (record.org || '').trim();
+      const certificateId = getCertificateId(record);
+
+      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, width, height);
+
       ctx.save();
-      ctx.globalAlpha = 0.02;
-      ctx.strokeStyle = '#E5E5E5';
+      ctx.globalAlpha = 0.018;
+      ctx.strokeStyle = '#E1DDD9';
       ctx.lineWidth = 2;
-      for (let x = -H; x < W+H; x += 80) {
+      for (let x = -height; x < width + height; x += 80) {
         ctx.beginPath();
         ctx.moveTo(x, 0);
-        ctx.lineTo(x+H, H);
+        ctx.lineTo(x + height, height);
         ctx.stroke();
       }
       ctx.restore();
 
-      // Corner decorations
-      const drawCorner = (x, y, f) => {
+      const drawCorner = (x, y, flip) => {
         ctx.save();
         ctx.translate(x, y);
-        if(f) ctx.scale(-1, -1);
+        if (flip) ctx.scale(-1, -1);
         ctx.fillStyle = accent;
         ctx.beginPath();
         ctx.moveTo(0, 0);
-        ctx.lineTo(400, 0);
-        ctx.lineTo(0, 240);
+        ctx.lineTo(430, 0);
+        ctx.lineTo(0, 255);
+        ctx.closePath();
         ctx.fill();
         ctx.restore();
       };
       drawCorner(0, 0, false);
-      drawCorner(W, H, true);
+      drawCorner(width, height, true);
 
-      // Borders
-      const m = 50;
+      const margin = 56;
       ctx.strokeStyle = accent;
       ctx.lineWidth = 6;
-      ctx.strokeRect(m, m, W-m*2, H-m*2);
+      ctx.strokeRect(margin, margin, width - margin * 2, height - margin * 2);
       ctx.strokeStyle = '#E5E5E5';
       ctx.lineWidth = 1;
-      ctx.strokeRect(m+12, m+12, W-(m+12)*2, H-(m+12)*2);
+      ctx.strokeRect(margin + 12, margin + 12, width - (margin + 12) * 2, height - (margin + 12) * 2);
 
-      // Logos
-      const logoY = 140;
-      const logoSpacing = W * 0.35;
-      const logos = [
-        { img: imgs?.logo1, x: W/2-logoSpacing, w: 250, h: 250, label: 'NMIMS' },
-        { img: imgs?.logo2, x: W/2+logoSpacing, w: 350, h: 175, label: 'ACM' }
-      ];
+      const logoY = 132;
+      const leftLogoX = width / 2 - 420;
+      const rightLogoX = width / 2 + 280;
 
-      logos.forEach((logo) => {
-        const left = logo.x - (logo.w / 2);
-        ctx.save();
-        ctx.shadowBlur = 15;
-        ctx.shadowColor = 'rgba(0,0,0,0.08)';
-        ctx.fillStyle = '#fff';
-        ctx.fillRect(left, logoY, logo.w, logo.h);
-        ctx.restore();
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(leftLogoX, logoY, 250, 250);
+      ctx.fillRect(rightLogoX, logoY + 40, 360, 170);
 
-        if (logo.img && logo.img.width > 0 && logo.img.height > 0) {
-          const scale = Math.max(logo.w / logo.img.width, logo.h / logo.img.height);
-          const sw = Math.min(logo.img.width, logo.w / scale);
-          const sh = Math.min(logo.img.height, logo.h / scale);
-          const sx = Math.max(0, (logo.img.width - sw) / 2);
-          const sy = Math.max(0, (logo.img.height - sh) / 2);
-          ctx.drawImage(logo.img, sx, sy, sw, sh, left, logoY, logo.w, logo.h);
-        }
-      });
+      if (assets.logo1) {
+        fitImageContain(ctx, assets.logo1, leftLogoX, logoY, 250, 250);
+      } else {
+        ctx.fillStyle = soft;
+        ctx.font = '700 54px Outfit';
+        ctx.textAlign = 'center';
+        ctx.fillText('NMIMS', leftLogoX + 125, logoY + 145);
+      }
 
-      // Title
+      if (assets.logo2) {
+        fitImageContain(ctx, assets.logo2, rightLogoX, logoY + 40, 360, 170);
+      } else {
+        ctx.fillStyle = soft;
+        ctx.font = '700 42px Outfit';
+        ctx.textAlign = 'center';
+        ctx.fillText('SPRINGER', rightLogoX + 180, logoY + 140);
+      }
+
       ctx.textAlign = 'center';
       ctx.fillStyle = accent;
-      ctx.font = `700 ${W*0.07}px "Outfit"`;
-      ctx.fillText('CERTIFICATE', W/2, 380);
+      ctx.font = '700 114px Outfit';
+      ctx.fillText('CERTIFICATE', width / 2, 388);
 
       ctx.fillStyle = text;
-      ctx.font = `500 ${W*0.022}px "Outfit"`;
-      ctx.letterSpacing = '0.1em';
-      ctx.fillText('OF APPRECIATION', W/2, 450);
+      ctx.font = '500 36px Outfit';
+      ctx.fillText('OF APPRECIATION', width / 2, 448);
 
-      // Badge
-      const bW = 450, bH = 60, bY = 510;
+      const badgeWidth = 520;
+      const badgeHeight = 60;
+      const badgeY = 510;
       ctx.fillStyle = accent;
-      ctx.fillRect(W/2-bW/2, bY, bW, bH);
+      ctx.fillRect(width / 2 - badgeWidth / 2, badgeY, badgeWidth, badgeHeight);
       ctx.fillStyle = '#fff';
-      ctx.font = `600 22px "Outfit"`;
-      ctx.letterSpacing = '0.05em';
-      ctx.fillText('THIS CERTIFIES THAT', W/2, bY+40);
+      ctx.font = '600 24px Outfit';
+      ctx.fillText('THIS CERTIFIES THAT', width / 2, badgeY + 40);
 
-      // Name
-      const nameY = 740;
+      const nameY = 742;
       ctx.fillStyle = text;
-      ctx.font = `700 ${W*0.055}px "Outfit"`;
-      ctx.fillText(attendee.name || '', W/2, nameY);
+      ctx.font = '700 84px Outfit';
+      ctx.fillText(record.name || '', width / 2, nameY);
       ctx.strokeStyle = text;
       ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.moveTo(W/2-350, nameY + 25);
-      ctx.lineTo(W/2+350, nameY + 25);
+      ctx.moveTo(width / 2 - 370, nameY + 26);
+      ctx.lineTo(width / 2 + 370, nameY + 26);
       ctx.stroke();
 
-      // Organization
-      const org = (attendee.org || '').trim();
-      if (org) {
-        ctx.fillStyle = '#6B6B6B';
-        ctx.font = `500 ${W*0.032}px "Outfit"`;
-        ctx.fillText(org, W/2, nameY + 100);
+      if (organization) {
+        ctx.fillStyle = soft;
+        ctx.font = '500 44px Outfit';
+        ctx.fillText(organization, width / 2, nameY + 102);
       }
 
-      // Body text
-      const bodyY = org ? nameY + 160 : nameY + 80;
-      ctx.fillStyle = '#6B6B6B';
-      ctx.font = `500 ${W*0.028}px "Outfit"`;
-      ctx.fillText('has participated in the', W/2, bodyY);
-
-      const confY = bodyY + 80;
-      ctx.fillStyle = '#6B6B6B';
-      ctx.font = `500 ${W*0.028}px "Outfit"`;
-      ctx.fillText('ACM COMPUTE Regional Event', W/2, confY);
+      const bodyStart = organization ? nameY + 166 : nameY + 92;
+      ctx.fillStyle = soft;
+      ctx.font = '500 38px Outfit';
+      ctx.fillText('has participated in the', width / 2, bodyStart);
+      ctx.fillText('ACM COMPUTE Regional Event', width / 2, bodyStart + 74);
       ctx.fillStyle = text;
-      ctx.font = `700 ${W*0.028}px "Outfit"`;
-      ctx.fillText('2026 · Indore, India', W/2, confY+60);
+      ctx.font = '700 38px Outfit';
+      ctx.fillText('2026 - Indore, India', width / 2, bodyStart + 138);
 
-      // Signatures
-      const sigY = H - 220;
-      const sigSp = W * 0.3;
-      const sigs = [
-        { n: 'Dr. Name 1', r: 'Chair', img: imgs?.sign1 },
-        { n: 'Dr. Name 2', r: 'Co-Chair', img: imgs?.sign2 },
-        { n: 'Dr. Name 3', r: 'Coordinator', img: imgs?.sign3 }
+      const certificateLineY = bodyStart + 202;
+      ctx.strokeStyle = '#D8D0CA';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(width / 2 - 220, certificateLineY);
+      ctx.lineTo(width / 2 + 220, certificateLineY);
+      ctx.stroke();
+      ctx.fillStyle = accent;
+      ctx.font = '600 20px Oswald';
+      ctx.fillText(certificateId, width / 2, certificateLineY + 35);
+
+      const signatureY = height - 220;
+      const signatureSpacing = width * 0.3;
+      const signatures = [
+        { label: 'Advisor', img: assets.sign1 },
+        { label: 'Co-Convener', img: assets.sign2 },
+        { label: 'Coordinator', img: assets.sign3 }
       ];
 
-      [W/2-sigSp, W/2, W/2+sigSp].forEach((sx, i) => {
-        const sig = sigs[i];
-        if (sig.img && sig.img.width > 0 && sig.img.height > 0) {
-          const imgW = 240, imgH = 90;
-          const imgX = sx - imgW / 2;
-          const imgY = sigY - imgH - 10;
-          ctx.drawImage(sig.img, imgX, imgY, imgW, imgH);
+      [width / 2 - signatureSpacing, width / 2, width / 2 + signatureSpacing].forEach((x, index) => {
+        const sig = signatures[index];
+        if (sig.img) {
+          const imgWidth = 240;
+          const imgHeight = 90;
+          const imgX = x - imgWidth / 2;
+          const imgY = signatureY - imgHeight - 10;
+          ctx.drawImage(sig.img, imgX, imgY, imgWidth, imgHeight);
         }
         ctx.strokeStyle = text;
         ctx.lineWidth = 1.5;
         ctx.beginPath();
-        ctx.moveTo(sx-150, sigY);
-        ctx.lineTo(sx+150, sigY);
+        ctx.moveTo(x - 150, signatureY);
+        ctx.lineTo(x + 150, signatureY);
         ctx.stroke();
         ctx.fillStyle = text;
-        ctx.font = `600 ${W*0.022}px "Outfit"`;
-        ctx.fillText(sig.n, sx, sigY+40);
-        ctx.fillStyle = '#6B6B6B';
-        ctx.font = `500 ${W*0.016}px "Outfit"`;
-        ctx.letterSpacing = '0.05em';
-        ctx.fillText(sig.r.toUpperCase(), sx, sigY+65);
-        ctx.letterSpacing = '0px';
+        ctx.font = '600 28px Outfit';
+        ctx.fillText(sig.label, x, signatureY + 40);
+        ctx.fillStyle = soft;
+        ctx.font = '500 18px Outfit';
+        ctx.fillText('SIGNATORY', x, signatureY + 66);
       });
     }
 
-    async function downloadPDF() {
+    function downloadPDF() {
+      if (!currentRecord) return;
       const { jsPDF } = window.jspdf;
       const canvas = document.getElementById('certCanvas');
-      const imgData = canvas.toDataURL('image/png', 1.0);
-      const pdf = new jsPDF({ orientation:'landscape', unit:'mm', format:'a4' });
-      pdf.addImage(imgData, 'PNG', 0, 0, 297, 210, undefined, 'FAST');
-      pdf.save(`CRE_Certificate_${currentRecord.name.replace(/\s+/g, '_')}.pdf`);
+      const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+      pdf.addImage(canvas.toDataURL('image/png', 1.0), 'PNG', 0, 0, 297, 210, undefined, 'FAST');
+      pdf.save(`CRE_Certificate_${String(currentRecord.name || 'attendee').replace(/\s+/g, '_')}.pdf`);
     }
 
     window.addEventListener('load', loadData);
   </script>
-
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
