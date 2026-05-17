@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Certificate Portal | ACM COMPUTE Regional Event</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Cormorant+Garamond:wght@600;700&family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    :root {
+      --accent: #C45C3E;
+      --accent-hover: #A34D33;
+      --text: #2D2D2D;
+      --text-muted: #6B6B6B;
+      --text-subtle: #9A9A9A;
+      --bg: #FFFFFF;
+      --bg-subtle: #F7F7F7;
+      --border: #E5E5E5;
+      --shadow: 0 28px 80px rgba(45, 45, 45, 0.08);
+    }
+
+    * { box-sizing: border-box; font-family: "Outfit", system-ui, -apple-system, sans-serif; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(196, 92, 62, 0.08), transparent 30%),
+        radial-gradient(circle at bottom right, rgba(196, 92, 62, 0.05), transparent 28%),
+        linear-gradient(180deg, #ffffff 0%, #fbf8f6 100%);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background: repeating-linear-gradient(-45deg, transparent, transparent 44px, rgba(196, 92, 62, 0.018) 44px, rgba(196, 92, 62, 0.018) 45px);
+      z-index: 0;
+    }
+
+    h1, h2, h3, h4, h5, h6 { color: var(--text); font-weight: 700; line-height: 1.25; margin-top: 0; }
+
+    .page-shell { position: relative; z-index: 1; }
+
+    .site-header {
+      position: sticky; top: 0; z-index: 30;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .site-header-inner {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 1rem; padding: 1rem 0;
+    }
+
+    .site-brand { color: var(--text); text-decoration: none; font-weight: 800; letter-spacing: 0.02em; font-size: 0.98rem; }
+    .site-nav a { color: var(--text-muted); text-decoration: none; font-size: 0.875rem; margin-left: 1.5rem; font-weight: 500; }
+
+    .hero { padding: 3.5rem 0 1.75rem; }
+
+    .hero-card { border: 1px solid var(--border); background: #fff; box-shadow: var(--shadow); overflow: hidden; }
+
+    .hero-inner {
+      padding: 2.25rem;
+      background: linear-gradient(135deg, rgba(196, 92, 62, 0.06) 0%, rgba(196, 92, 62, 0.015) 100%);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .kicker {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.42rem 0.75rem; margin-bottom: 1rem;
+      background: rgba(196, 92, 62, 0.1); color: var(--accent);
+      border: 1px solid rgba(196, 92, 62, 0.18);
+      font-size: 0.75rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+    }
+
+    .hero-title { font-size: clamp(2rem, 4vw, 3.6rem); margin: 0 0 0.85rem; max-width: 14ch; }
+    .hero-copy { max-width: 64ch; margin-bottom: 0; color: var(--text-muted); line-height: 1.75; font-size: 1rem; }
+
+    .portal-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
+      gap: 1.5rem; padding: 2rem 2.25rem 2.25rem;
+    }
+
+    .panel { border: 1px solid var(--border); background: #fff; }
+    .form-panel { padding: 1.75rem; }
+    .summary-panel { padding: 1.75rem; background: linear-gradient(180deg, #fff 0%, #f8f4f1 100%); }
+
+    .summary-title { margin: 0 0 0.9rem; color: var(--text-subtle); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.09em; font-weight: 700; }
+    .summary-empty { color: var(--text-muted); font-size: 0.96rem; line-height: 1.7; margin: 0; }
+    .summary-list { display: grid; gap: 0.85rem; }
+
+    .summary-item { display: flex; flex-direction: column; gap: 0.3rem; padding-bottom: 0.85rem; border-bottom: 1px solid var(--border); }
+    .summary-item:last-child { padding-bottom: 0; border-bottom: 0; }
+    .summary-item span { color: var(--text-subtle); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; }
+    .summary-item strong { color: var(--text); font-size: 0.98rem; word-break: break-word; }
+
+    .form-label { font-weight: 700; color: var(--text); margin-bottom: 0.5rem; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.07em; }
+
+    .form-control {
+      border: 1px solid var(--border); border-radius: 0;
+      padding: 0.85rem 1rem; font-size: 1rem;
+      transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
+    }
+
+    .form-control:focus { border-color: var(--accent); box-shadow: inset 0 0 0 0.2rem rgba(196, 92, 62, 0.08); outline: none; }
+    .form-control:disabled, .form-control[readonly] { background-color: var(--bg-subtle); color: var(--text-muted); cursor: not-allowed; }
+
+    .status-message {
+      display: none; margin-bottom: 1rem; padding: 0.9rem 1rem; border-radius: 0;
+      font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
+    }
+    .status-message.ok { display: block; color: #2E7D32; background: #EAF6EC; border-left: 4px solid #2E7D32; }
+    .status-message.error { display: block; color: #C62828; background: #FFEBEE; border-left: 4px solid #C62828; }
+
+    .btn {
+      border-radius: 0; font-size: 0.82rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.08em; padding: 0.9rem 1.15rem;
+      transition: transform 0.2s, background-color 0.2s, border-color 0.2s, color 0.2s;
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .btn-primary:hover, .btn-primary:focus { background: var(--accent-hover); border-color: var(--accent-hover); color: #fff; }
+    .btn-primary:disabled { background: var(--text-subtle); border-color: var(--text-subtle); opacity: 0.7; transform: none; cursor: not-allowed; }
+    .btn-secondary { background: var(--bg-subtle); border-color: var(--border); color: var(--text); }
+    .btn-secondary:hover, .btn-secondary:focus { background: #ece8e5; border-color: var(--text-subtle); color: var(--text); }
+
+    .lookup-note { margin: 1rem 0 0; color: var(--text-subtle); font-size: 0.92rem; line-height: 1.6; }
+
+    .preview-section { padding: 0 0 4rem; }
+
+    .preview-head {
+      display: flex; justify-content: space-between; align-items: end;
+      gap: 1.25rem; flex-wrap: wrap; margin: 0 0 1rem;
+    }
+
+    .canvas-wrap { border: 1px solid var(--border); background: #fff; box-shadow: var(--shadow); overflow: hidden; }
+
+    #certCanvas { width: 100%; height: auto; display: block; }
+
+    .preview-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+    .preview-actions .btn { min-width: 180px; }
+
+    .site-footer { border-top: 1px solid var(--border); background: #fff; padding: 1.75rem 0; margin-top: 1rem; }
+
+    .footer-inner {
+      display: flex; justify-content: space-between; align-items: center;
+      gap: 1rem; flex-wrap: wrap; color: var(--text-muted); font-size: 0.875rem;
+    }
+    .footer-inner a { color: var(--accent); text-decoration: none; font-weight: 600; }
+
+    .hidden { display: none !important; }
+
+    @media (max-width: 991px) { .portal-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 576px) {
+      .hero-inner, .portal-grid, .form-panel, .summary-panel { padding: 1.25rem; }
+      .preview-actions .btn { width: 100%; }
+      .hero-title { max-width: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-shell">
+    <header class="site-header">
+      <div class="container">
+        <div class="site-header-inner">
+          <a class="site-brand" href="/docs/">ACM COMPUTE</a>
+          <nav class="site-nav" aria-label="Primary">
+            <a href="/docs/">Home</a>
+          </nav>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="container">
+          <div class="hero-card">
+            <div class="hero-inner">
+              <div class="kicker">ACM COMPUTE Regional Event 2026</div>
+              <h1 class="hero-title">Verify by email. Generate a polished certificate in one step.</h1>
+              <p class="hero-copy">Enter the attendee email address from the registration list. The portal will match the record, fill the name and organization automatically, and render the final PDF certificate with the official event artwork and signature layout.</p>
+            </div>
+
+            <div class="portal-grid">
+              <section class="panel form-panel" aria-labelledby="lookup-title">
+                <h2 id="lookup-title" class="h4 mb-3">Download Certificate</h2>
+                <div id="status-t1" class="status-message"></div>
+
+                <div class="mb-3">
+                  <label for="inp-email" class="form-label">Email Address</label>
+                  <input id="inp-email" class="form-control" type="email" placeholder="Enter your email address" autocomplete="off" oninput="lookupAttendee()">
+                </div>
+
+                <div class="mb-3">
+                  <label for="inp-name" class="form-label">Full Name</label>
+                  <input id="inp-name" class="form-control" type="text" readonly>
+                </div>
+
+                <div class="mb-3">
+                  <label for="inp-org" class="form-label">Organization</label>
+                  <input id="inp-org" class="form-control" type="text" readonly>
+                </div>
+
+                <button id="gen-btn" class="btn btn-primary w-100" disabled onclick="generateCert()">Generate PDF Certificate</button>
+                <p class="lookup-note">If a record is not found, check that the email matches the spreadsheet exactly, including any punctuation and domain spelling.</p>
+              </section>
+
+              <aside class="panel summary-panel" aria-labelledby="summary-title">
+                <h2 id="summary-title" class="summary-title">Verified attendee</h2>
+                <p id="summary-empty" class="summary-empty">Enter a registered attendee email to see the matched record here.</p>
+                <div id="summary-list" class="summary-list hidden">
+                  <div class="summary-item">
+                    <span>Email</span>
+                    <strong id="summary-email"></strong>
+                  </div>
+                  <div class="summary-item">
+                    <span>Name</span>
+                    <strong id="summary-name"></strong>
+                  </div>
+                  <div class="summary-item">
+                    <span>Organization</span>
+                    <strong id="summary-org"></strong>
+                  </div>
+                  <div class="summary-item">
+                    <span>Status</span>
+                    <strong>Ready to generate</strong>
+                  </div>
+                </div>
+              </aside>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="pg-cert" class="preview-section hidden">
+        <div class="container">
+          <div class="preview-head">
+            <div>
+              <div class="kicker" style="margin-bottom:.85rem;">Certificate preview</div>
+              <h2 style="margin-bottom:.35rem;">Review and download</h2>
+            </div>
+            <div class="preview-actions">
+              <button class="btn btn-secondary" onclick="goToLookup()">Back to lookup</button>
+              <button class="btn btn-primary" onclick="downloadPDF()">Download PDF</button>
+            </div>
+          </div>
+          <div class="canvas-wrap">
+            <canvas id="certCanvas" width="2400" height="1697"></canvas>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <div class="footer-inner">
+          <div>ACM COMPUTE Regional Event 2026 — Indore, India</div>
+          <div><a href="/docs/">Back to Website</a></div>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    let attendeesList = [];
+    let currentRecord = null;
+
+    function normalize(value) { return String(value || '').replace(/\s+/g, '').toLowerCase(); }
+    function cleanText(value) { return String(value ?? '').replace(/\s+/g, ' ').trim(); }
+
+    function setStatus(kind, message) {
+      const status = document.getElementById('status-t1');
+      if (!status) return;
+      if (!kind) { status.className = 'status-message'; status.textContent = ''; return; }
+      status.className = `status-message ${kind}`;
+      status.textContent = message;
+    }
+
+    function renderSummary(record) {
+      const empty = document.getElementById('summary-empty');
+      const list  = document.getElementById('summary-list');
+      const email = document.getElementById('summary-email');
+      const name  = document.getElementById('summary-name');
+      const org   = document.getElementById('summary-org');
+      if (!empty || !list || !email || !name || !org) return;
+      if (!record) {
+        empty.classList.remove('hidden'); list.classList.add('hidden');
+        email.textContent = ''; name.textContent = ''; org.textContent = '';
+        return;
+      }
+      empty.classList.add('hidden'); list.classList.remove('hidden');
+      email.textContent = record.email || '—';
+      name.textContent  = record.name  || '—';
+      org.textContent   = record.org   || '—';
+    }
+
+    async function loadData() {
+      try {
+        const response = await fetch('data.xlsx');
+        if (!response.ok) throw new Error('data.xlsx not found');
+        const buffer = await response.arrayBuffer();
+        parseAttendees(buffer);
+      } catch (error) {
+        console.error('Failed to load data.xlsx', error);
+        setStatus('error', 'Attendee data could not be loaded');
+      }
+    }
+
+    function parseAttendees(buffer) {
+      attendeesList = [];
+      if (!window.XLSX) throw new Error('XLSX library not available');
+      const workbook = XLSX.read(buffer, { type: 'array' });
+      workbook.SheetNames.forEach((sheetName) => {
+        const sheet = workbook.Sheets[sheetName];
+        const rows  = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+        if (!rows.length) return;
+        const headerRowIndex = rows.findIndex((row) => row.some((cell) => String(cell).trim() !== ''));
+        if (headerRowIndex === -1) return;
+        const headerRow = rows[headerRowIndex];
+        const headerMap = {};
+        headerRow.forEach((cell, index) => {
+          const key = String(cell || '').replace(/\s+/g, '').toLowerCase();
+          if (key.includes('email')) headerMap.email = index;
+          if (key.includes('name'))  headerMap.name  = index;
+          if (key.includes('org') || key.includes('instit') || key.includes('affil') || key.includes('company')) headerMap.org = index;
+        });
+        rows.slice(headerRowIndex + 1).forEach((row) => {
+          if (!row || row.every((cell) => String(cell).trim() === '')) return;
+          const email = headerMap.email !== undefined ? cleanText(row[headerMap.email]) : '';
+          const name  = headerMap.name  !== undefined ? cleanText(row[headerMap.name])  : '';
+          const org   = headerMap.org   !== undefined ? cleanText(row[headerMap.org])   : '';
+          if (!email && !name) return;
+          attendeesList.push({ email, name, org });
+        });
+      });
+    }
+
+    function lookupAttendee() {
+      const raw      = document.getElementById('inp-email').value.trim();
+      const inputName= document.getElementById('inp-name');
+      const inputOrg = document.getElementById('inp-org');
+      const button   = document.getElementById('gen-btn');
+      if (!raw) {
+        setStatus('', ''); inputName.value = ''; inputOrg.value = '';
+        button.disabled = true; currentRecord = null; renderSummary(null); return;
+      }
+      const key     = normalize(raw);
+      const matches = attendeesList.filter((r) => normalize(r.email) === key);
+      if (matches.length >= 1) {
+        const record = matches[0]; currentRecord = record;
+        inputName.value = record.name || ''; inputOrg.value = record.org || '';
+        button.disabled = false; setStatus('ok', 'Verified'); renderSummary(record); return;
+      }
+      currentRecord = null; inputName.value = ''; inputOrg.value = '';
+      button.disabled = true; setStatus('error', 'Email not found in attendee list'); renderSummary(null);
+    }
+
+    function goToLookup() {
+      document.getElementById('pg-cert').classList.add('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function getCertificateId(record) {
+      const base     = String((record.email || record.name || 'attendee')).replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+      const hashSeed = (record.name || '').length + (record.email || '').length + (record.org || '').length;
+      return `CRE-${base.slice(0, 10)}-${String(hashSeed).padStart(4, '0')}`;
+    }
+
+    function loadImage(src) {
+      return new Promise((resolve) => {
+        const image = new Image();
+        image.onload  = () => resolve(image);
+        image.onerror = () => resolve(null);
+        image.src = src;
+      });
+    }
+
+    async function generateCert() {
+      if (!currentRecord) return;
+      const preview = document.getElementById('pg-cert');
+      preview.classList.remove('hidden');
+      preview.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      const canvas = document.getElementById('certCanvas');
+      const ctx    = canvas.getContext('2d');
+      const W = canvas.width, H = canvas.height;
+
+      const [logoLeft, logoCentre, logoRight, sign1, sign2, sign3] = await Promise.all([
+        loadImage('sig.png'),
+        loadImage('nmimstree.png'),
+        loadImage('acmsig.png'),
+        loadImage('../certificate-main/aj.png'),
+        loadImage('../certificate-main/ss.png'),
+        loadImage('../certificate-main/vk.png')
+      ]);
+
+      renderCertificate(ctx, W, H, currentRecord, { logoLeft, logoCentre, logoRight, sign1, sign2, sign3 });
+    }
+
+    /* ─────────────────────────────────────────────────────────────────────
+       DRAW RECTANGULAR LOGO FRAME
+       x, y = top-left of the box; w, h = outer dimensions
+    ───────────────────────────────────────────────────────────────────── */
+    function drawRectLogoFrame(ctx, img, x, y, w, h, gold, accent) {
+      const pad    = 10;   // space between outer border and inner border
+      const inner  = 6;    // gap between inner border and image area
+      const imgPad = 14;   // padding inside the image cell
+
+      // Outer border
+      ctx.save();
+      ctx.strokeStyle = gold;
+      ctx.lineWidth   = 3.5;
+      ctx.strokeRect(x, y, w, h);
+
+      // Inner border
+      ctx.strokeStyle = accent;
+      ctx.lineWidth   = 1.5;
+      ctx.strokeRect(x + pad, y + pad, w - pad * 2, h - pad * 2);
+
+      // White fill
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(x + pad + inner, y + pad + inner, w - (pad + inner) * 2, h - (pad + inner) * 2);
+
+      // Corner ticks on outer frame
+      const tick = 28;
+      ctx.strokeStyle = accent;
+      ctx.lineWidth   = 2;
+      ctx.lineCap     = 'round';
+      [[x, y], [x + w, y], [x, y + h], [x + w, y + h]].forEach(([cx, cy], i) => {
+        const sx = i % 2 === 0 ? 1 : -1;
+        const sy = i < 2 ? 1 : -1;
+        ctx.beginPath(); ctx.moveTo(cx + sx * 2, cy + sy * (tick + 2)); ctx.lineTo(cx + sx * 2, cy + sy * 2); ctx.lineTo(cx + sx * (tick + 2), cy + sy * 2); ctx.stroke();
+      });
+
+      // Draw image, scaled to fit with padding
+      if (img) {
+        const cellX = x + pad + inner + imgPad;
+        const cellY = y + pad + inner + imgPad;
+        const cellW = w - (pad + inner + imgPad) * 2;
+        const cellH = h - (pad + inner + imgPad) * 2;
+        const scale = Math.min(cellW / img.width, cellH / img.height);
+        const dw    = img.width  * scale;
+        const dh    = img.height * scale;
+        ctx.drawImage(img, cellX + (cellW - dw) / 2, cellY + (cellH - dh) / 2, dw, dh);
+      }
+      ctx.restore();
+    }
+
+    /* ─────────────────────────────────────────────────────────────────────
+       MAIN RENDER
+    ───────────────────────────────────────────────────────────────────── */
+    function renderCertificate(ctx, width, height, record, assets) {
+      const accent      = '#C45C3E';
+      const accentLight = '#D4A598';
+      const gold        = '#D4A053';
+      const soft        = '#6B6B6B';
+      const text        = '#2D2D2D';
+      const cream       = '#FAF8F6';
+      const organization   = (record.org || '').trim();
+      const certificateId  = getCertificateId(record);
+
+      // ── BACKGROUND ──
+      const bgGradient = ctx.createLinearGradient(0, 0, width, height);
+      bgGradient.addColorStop(0,   '#FFFFFF');
+      bgGradient.addColorStop(0.5, cream);
+      bgGradient.addColorStop(1,   '#F5F0EB');
+      ctx.fillStyle = bgGradient;
+      ctx.fillRect(0, 0, width, height);
+
+      // ── CORNER TRIANGLES ──
+      const drawCornerTriangle = (x, y, size, flip) => {
+        ctx.save();
+        ctx.translate(x, y);
+        if (flip) ctx.scale(-1, -1);
+        const gradient = ctx.createLinearGradient(0, 0, size, size);
+        gradient.addColorStop(0, gold);
+        gradient.addColorStop(1, accent);
+        ctx.fillStyle = gradient;
+        ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(size, 0); ctx.lineTo(0, size); ctx.closePath(); ctx.fill();
+        ctx.strokeStyle = 'rgba(255,255,255,0.3)'; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.moveTo(size * 0.3, 0); ctx.lineTo(0, size * 0.3); ctx.stroke();
+        ctx.restore();
+      };
+      drawCornerTriangle(0, 0, 400, false);
+      drawCornerTriangle(width, height, 400, true);
+
+      // ── CORNER FLOURISHES ──
+      const drawFlourish = (x, y, flip) => {
+        ctx.save(); ctx.translate(x, y);
+        if (flip) ctx.scale(-1, -1);
+        ctx.strokeStyle = accent; ctx.lineWidth = 2.5; ctx.lineCap = 'round';
+        ctx.beginPath(); ctx.moveTo(30, 30); ctx.quadraticCurveTo(50, 40, 70, 30); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(30, 30); ctx.quadraticCurveTo(40, 50, 30, 70); ctx.stroke();
+        ctx.fillStyle = accent;
+        [[25,25],[75,35],[35,75]].forEach(([dx, dy]) => { ctx.beginPath(); ctx.arc(dx, dy, 4, 0, Math.PI * 2); ctx.fill(); });
+        ctx.restore();
+      };
+      drawFlourish(40, 40, false);
+      drawFlourish(width - 40, height - 40, true);
+
+      // ── BORDER FRAMES ──
+      const margin = 70;
+      ctx.strokeStyle = gold;   ctx.lineWidth = 5;
+      ctx.strokeRect(margin, margin, width - margin * 2, height - margin * 2);
+      const innerMargin = margin + 22;
+      ctx.strokeStyle = accent; ctx.lineWidth = 2;
+      ctx.strokeRect(innerMargin, innerMargin, width - innerMargin * 2, height - innerMargin * 2);
+
+      // Border corner elements
+      const cornerSize = 70;
+      [[margin, margin],[width - margin, margin],[margin, height - margin],[width - margin, height - margin]].forEach(([cx, cy], idx) => {
+        ctx.save(); ctx.translate(cx, cy); ctx.rotate(idx * Math.PI / 2);
+        ctx.strokeStyle = gold; ctx.lineWidth = 4; ctx.lineCap = 'round';
+        ctx.beginPath(); ctx.moveTo(-cornerSize/2, 0); ctx.lineTo(-22, 0); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(0, -cornerSize/2); ctx.lineTo(0, -22); ctx.stroke();
+        ctx.restore();
+      });
+
+      // ── THREE RECTANGULAR LOGOS ──
+      // Logo dimensions and vertical position
+      const logoW  = 360;   // each logo box width
+      const logoH  = 230;   // each logo box height
+      const logoTopY = margin + 32;  // tight below outer border, well above inner border
+
+      const centerX = width / 2;
+
+      // Positions: left | centre | right — evenly spaced in the safe zone
+      // Available horizontal width between inner borders: width - 2*innerMargin
+      // We'll place them symmetrically with clear padding
+      const logoCentreX = centerX - logoW / 2;
+      const sidePad     = 120; // gap between centre box edge and side box
+      const logoLeftX   = logoCentreX - logoW - sidePad;
+      const logoRightX  = logoCentreX + logoW + sidePad;
+
+      // All three logos: no border frames, just images centred in their bounding boxes
+      const drawBareLogo = (img, x, y, w, h) => {
+        if (!img) return;
+        const imgPad = 20;
+        const cellW  = w - imgPad * 2;
+        const cellH  = h - imgPad * 2;
+        const scale  = Math.min(cellW / img.width, cellH / img.height);
+        const dw     = img.width  * scale;
+        const dh     = img.height * scale;
+        ctx.drawImage(img, x + imgPad + (cellW - dw) / 2, y + imgPad + (cellH - dh) / 2, dw, dh);
+      };
+      drawBareLogo(assets.logoLeft,   logoLeftX,   logoTopY, logoW, logoH);
+      drawBareLogo(assets.logoCentre, logoCentreX, logoTopY, logoW, logoH);
+      drawBareLogo(assets.logoRight,  logoRightX,  logoTopY, logoW, logoH);
+
+      // Thin decorative connector lines between the three logo boxes
+      const lineY = logoTopY + logoH / 2;
+      ctx.strokeStyle = gold; ctx.lineWidth = 1.5;
+      // left gap line
+      ctx.beginPath(); ctx.moveTo(logoLeftX + logoW + 6, lineY); ctx.lineTo(logoCentreX - 6, lineY); ctx.stroke();
+      // right gap line
+      ctx.beginPath(); ctx.moveTo(logoCentreX + logoW + 6, lineY); ctx.lineTo(logoRightX - 6, lineY); ctx.stroke();
+      // Small diamond connectors at mid-gap
+      const drawDiamond = (cx, cy, r) => {
+        ctx.fillStyle = accent;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy - r); ctx.lineTo(cx + r, cy); ctx.lineTo(cx, cy + r); ctx.lineTo(cx - r, cy);
+        ctx.closePath(); ctx.fill();
+        ctx.fillStyle = gold;
+        ctx.beginPath();
+        const ri = r * 0.52;
+        ctx.moveTo(cx, cy - ri); ctx.lineTo(cx + ri, cy); ctx.lineTo(cx, cy + ri); ctx.lineTo(cx - ri, cy);
+        ctx.closePath(); ctx.fill();
+      };
+      drawDiamond(logoLeftX + logoW + sidePad / 2, lineY, 18);
+      drawDiamond(logoCentreX + logoW + sidePad / 2, lineY, 18);
+
+      // ── TITLE SECTION ──
+      ctx.textAlign = 'center';
+      const titleY = logoTopY + logoH + 110;
+
+      ctx.fillStyle = accent;
+      ctx.font = '700 155px "Cormorant Garamond", serif';
+      ctx.fillText('Certificate', centerX, titleY);
+
+      // Decorative underline of title
+      const titleUnderlineY = titleY + 18;
+      ctx.strokeStyle = gold; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(centerX - 360, titleUnderlineY); ctx.lineTo(centerX - 80, titleUnderlineY); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(centerX + 80,  titleUnderlineY); ctx.lineTo(centerX + 360, titleUnderlineY); ctx.stroke();
+      ctx.fillStyle = accent;
+      ctx.beginPath(); ctx.arc(centerX, titleUnderlineY, 8, 0, Math.PI * 2); ctx.fill();
+
+      ctx.fillStyle = soft;
+      ctx.font = '600 44px "Outfit", sans-serif';
+      ctx.fillText('OF APPRECIATION', centerX, titleY + 80);
+
+      // Horizontal decorative rule
+      const ruleY = titleY + 122;
+      const ruleGrad = ctx.createLinearGradient(centerX - 550, ruleY, centerX + 550, ruleY);
+      ruleGrad.addColorStop(0,   'rgba(212,160,83,0)');
+      ruleGrad.addColorStop(0.3, gold);
+      ruleGrad.addColorStop(0.5, accent);
+      ruleGrad.addColorStop(0.7, gold);
+      ruleGrad.addColorStop(1,   'rgba(212,160,83,0)');
+      ctx.strokeStyle = ruleGrad; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(centerX - 550, ruleY); ctx.lineTo(centerX + 550, ruleY); ctx.stroke();
+
+      // ── RECIPIENT ──
+      ctx.fillStyle = soft;
+      ctx.font = '400 38px "Outfit", sans-serif';
+      ctx.fillText('This Certificate is presented to', centerX, ruleY + 68);
+
+      const nameY = ruleY + 210;
+      ctx.fillStyle = text;
+      ctx.font = '700 118px "Cormorant Garamond", serif';
+      ctx.fillText(record.name || '', centerX, nameY);
+
+      // Name underline
+      const nameUnderlineY = nameY + 24;
+      const nameGradient   = ctx.createLinearGradient(centerX - 550, nameUnderlineY, centerX + 550, nameUnderlineY);
+      nameGradient.addColorStop(0,   'rgba(212,160,83,0)');
+      nameGradient.addColorStop(0.2, gold);
+      nameGradient.addColorStop(0.5, accent);
+      nameGradient.addColorStop(0.8, gold);
+      nameGradient.addColorStop(1,   'rgba(212,160,83,0)');
+      ctx.strokeStyle = nameGradient; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(centerX - 550, nameUnderlineY); ctx.lineTo(centerX + 550, nameUnderlineY); ctx.stroke();
+
+      // Organization
+      if (organization) {
+        ctx.fillStyle = soft;
+        ctx.font = '500 50px "Outfit", sans-serif';
+        ctx.fillText(organization, centerX, nameY + 110);
+      }
+
+      // ── BODY TEXT ──
+      const bodyStart = organization ? nameY + 210 : nameY + 140;
+      ctx.fillStyle = soft;
+      ctx.font = '400 40px "Outfit", sans-serif';
+      ctx.fillText('for participation at the workshop at', centerX, bodyStart);
+
+      ctx.fillStyle = text;
+      ctx.font = '700 48px "Outfit", sans-serif';
+      ctx.fillText('ACM COMPUTE Regional Event', centerX, bodyStart + 82);
+
+      ctx.fillStyle = soft;
+      ctx.font = '400 40px "Outfit", sans-serif';
+      ctx.fillText('May 1, 2026 — SVKM\'s NMIMS, Indore. India', centerX, bodyStart + 148);
+
+      // Certificate ID box
+      const idY       = bodyStart + 230;
+      const idBoxWidth = 420, idBoxHeight = 66;
+      ctx.strokeStyle = accent; ctx.lineWidth = 2;
+      ctx.strokeRect(centerX - idBoxWidth/2, idY - idBoxHeight/2, idBoxWidth, idBoxHeight);
+      ctx.fillStyle = 'rgba(196,92,62,0.05)';
+      ctx.fillRect(centerX - idBoxWidth/2, idY - idBoxHeight/2, idBoxWidth, idBoxHeight);
+      ctx.fillStyle = accent;
+      ctx.font = '600 28px "Oswald", sans-serif';
+      ctx.fillText(certificateId, centerX, idY + 10);
+
+      // ── SIGNATURES ──
+      // Order (left → right): Anshuman Jaswal | Vikas Khare (centre) | Shruti Sharma
+      const signatureY       = height - 268;
+      const signatureSpacing = 610;
+
+      const signatures = [
+        {
+          label: 'Director, SVKM\'s NMIMS Indore',
+          name:  'Dr. Anshuman Jaswal',
+          img:   assets.sign1
+        },
+        {
+          label: 'Associate Dean, STME, SVKM\'s NMIMS Indore',
+          name:  'Dr. Vikas Khare',
+          img:   assets.sign3   // Vikas → centre
+        },
+        {
+          label: 'Organizing Chair',
+          name:  'Dr. Shruti Sharma',
+          img:   assets.sign2   // Shruti → right
+        }
+      ];
+
+      [centerX - signatureSpacing, centerX, centerX + signatureSpacing].forEach((x, index) => {
+        const sig = signatures[index];
+
+        // Signature image
+        if (sig.img) {
+          const imgWidth  = 280, imgHeight = 110;
+          ctx.drawImage(sig.img, x - imgWidth / 2, signatureY - imgHeight - 18, imgWidth, imgHeight);
+        }
+
+        // Signature line
+        const lineGrad = ctx.createLinearGradient(x - 170, signatureY, x + 170, signatureY);
+        lineGrad.addColorStop(0,   'rgba(196,92,62,0.2)');
+        lineGrad.addColorStop(0.5, accent);
+        lineGrad.addColorStop(1,   'rgba(196,92,62,0.2)');
+        ctx.strokeStyle = lineGrad; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(x - 170, signatureY); ctx.lineTo(x + 170, signatureY); ctx.stroke();
+
+        // Name — bold, prominent
+        ctx.fillStyle   = text;
+        ctx.font        = '700 30px "Outfit", sans-serif';
+        ctx.textAlign   = 'center';
+        ctx.fillText(sig.name, x, signatureY + 46);
+
+        // Role — lighter, multiline if needed
+        ctx.fillStyle = soft;
+        ctx.font      = '500 24px "Outfit", sans-serif';
+
+        // Wrap long role text onto two lines at a natural break
+        const roleWords   = sig.label.split(' ');
+        const maxLineW    = 340; // px at canvas scale
+        let lines         = [];
+        let currentLine   = '';
+        ctx.save();
+        roleWords.forEach((word) => {
+          const test = currentLine ? currentLine + ' ' + word : word;
+          if (ctx.measureText(test).width > maxLineW && currentLine) {
+            lines.push(currentLine);
+            currentLine = word;
+          } else {
+            currentLine = test;
+          }
+        });
+        if (currentLine) lines.push(currentLine);
+        ctx.restore();
+
+        const lineHeight = 32;
+        lines.forEach((line, li) => {
+          ctx.fillText(line, x, signatureY + 84 + li * lineHeight);
+        });
+      });
+
+      // ── SUBTLE WATERMARK DOTS ──
+      ctx.save();
+      ctx.globalAlpha = 0.02;
+      ctx.fillStyle   = accent;
+      for (let i = 0; i < 8; i++) for (let j = 0; j < 6; j++) {
+        ctx.beginPath(); ctx.arc(300 + i * 280, 200 + j * 240, 40, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    function downloadPDF() {
+      if (!currentRecord) return;
+      const { jsPDF } = window.jspdf;
+      const canvas    = document.getElementById('certCanvas');
+      const pdf       = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+      pdf.addImage(canvas.toDataURL('image/png', 1.0), 'PNG', 0, 0, 297, 210, undefined, 'FAST');
+      pdf.save(`CRE_Certificate_${String(currentRecord.name || 'attendee').replace(/\s+/g, '_')}.pdf`);
+    }
+
+    window.addEventListener('load', loadData);
+  </script>
+</body>
+</html>
