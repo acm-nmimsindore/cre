@@ -20,7 +20,7 @@ alternate:
     <div style="background: #F7F7F7; padding: 2rem; border-left: 4px solid #C45C3E;">
       <p style="margin-bottom: 1rem;"><strong>📜 Certificate Portal</strong></p>
       <p style="margin-bottom: 1rem;">Click the button below to access the interactive certificate portal where you can verify your participation details and generate your personalized certificate.</p>
-      <a href="/docs/certificate-portal/" class="btn btn-primary" target="_blank" rel="noopener noreferrer">
+      <a href="/cre/certificate-portal/" class="btn btn-primary" target="_blank" rel="noopener noreferrer">
         Access Certificate Portal
       </a>
     </div>
